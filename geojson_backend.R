@@ -66,6 +66,9 @@ searchShapeFile = function(shapeType, value, operation){
     
     area = as.double(value)
     SpatialData_Subset <- Shapefile[Shapefile$AREA_HA %in% area,]
+  }else{
+    
+    SpatialData_Subset = Shapefile
   }
   
   
