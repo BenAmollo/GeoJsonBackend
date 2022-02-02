@@ -18,6 +18,9 @@ library(ggplot2)
 library(leaflet)
 library("rjson")
 library(jsonlite)
+library(jsonify)
+library(osrm)
+
 
 #* @apiTitle Spatial Data Query and Display API
 #* 
@@ -240,14 +243,13 @@ wardSchool = function(wardName){
   return(Ward_School_Subset)
 }
 
-#-1.2895171362243985, 36.901310823514464
-
 
 #* Get Geojson for Schools within a buffer
+#* @param bufferType The type of facility you want to search e.g [SCHOOLS,HEALTH_FACILITY]
 #* @param bufferDistance The distance which you want to buffer e.g [1000meters]
 #* @serializer unboxedJSON
 #* @get /get-schools-in-a-buffer-area/
-Buffer = function(bufferDistance, latitude, longitude, bufferType){
+Buffer = function(bufferType, bufferDistance, latitude, longitude){
   
   Point <- data.frame(
     lat = c(latitude),     
@@ -280,6 +282,35 @@ Buffer = function(bufferDistance, latitude, longitude, bufferType){
 }
 
 
+#* Get Geojson for shortest distance between points
+#* @param Latitude1 The first/start point geographical Latitude (-1.2954449022437051)
+#* @param Longitude1 The first/start point geographical Longitude (36.8447974112848)
+#* @param Latitude2 The second/end point geographical Latitude (-1.306325394000822)
+#* @param Longitude2 The second/end point geographical Longitude (36.881955397247864)
+#* @serializer unboxedJSON
+#* @get /get-shortest-distance/
 
-
-
+ShortestDistance = function(Latitude1,Longitude1, Latitude2,Longitude2){
+  
+  df = data.frame(com = c("StartPoint", "EndPoint"),                
+                  lon = c(Longitude1, Longitude2),
+                  lat = c(Latitude1, Latitude2),
+                  time = as.POSIXct(c("2022-01-18 23:59:59","2022-01-18 00:00:01"))) 
+  src = "StartPoint"
+  dst = "EndPoint"
+  
+  Route <- osrmRoute(
+    src = src,
+    dst = dst,
+    loc = df,
+    overview = "full",
+    exclude = NULL,
+    returnclass="sf",
+    osrm.server = getOption("osrm.server"),
+    osrm.profile = getOption("osrm.profile")
+  )
+  RouteGeoJson <- geojson_json(Route)
+  RouteNewGeoJson <- fromJSON(RouteGeoJson)
+  return(RouteNewGeoJson)
+  
+}
