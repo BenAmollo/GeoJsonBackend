@@ -16,7 +16,7 @@ library(rspatial)
 library(raster)
 library(ggplot2)
 library(leaflet)
-library("rjson")
+library(rjson)
 library(jsonlite)
 library(jsonify)
 library(osrm)
@@ -314,3 +314,107 @@ ShortestDistance = function(Latitude1,Longitude1, Latitude2,Longitude2){
   return(RouteNewGeoJson)
   
 }
+
+
+
+#* Get OSM Amenities within a buffer
+#* @param value The type of facility you want to search e.g [SCHOOLS,HEALTH_FACILITY, BANK, ATM, RESTAURANT, FAST_FOOD, PARKING, POLICE, CAR_WASH PLACE_OF_WORSHIP, KINDERGARTEN]
+#* @param bufferDistance The distance which you want to buffer e.g [1000meters]
+#* @serializer unboxedJSON
+#* @get /get-amenities-in-a-buffer-area/
+
+AmenityBuffer = function(value, bufferDistance, latitude, longitude){
+  
+  Point <- data.frame(
+    lat = c(latitude),     
+    lon = c(longitude))
+  Pointsf <- st_as_sf(Point, coords = c("lon", "lat"), crs=4326)
+  bufferDistance = as.double(bufferDistance)
+  buffer <- st_buffer(Pointsf, dist = bufferDistance)
+  
+  buffer %>%
+    opq()
+  if(value == "SCHOOLS"){
+    #Finding Schools within  buffer
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "school") %>%
+      osmdata_sf()
+  }else if(value == "HOSPITAL"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "hospital") %>%
+      osmdata_sf()
+  }else if(value == "KINDERGARTEN"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "kindergarten") %>%
+      osmdata_sf()
+  }else if(value == "BANK"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "bank") %>%
+      osmdata_sf()
+  }else if(value == "ATM"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "atm") %>%
+      osmdata_sf()
+  }else if(value == "RESTAURANT"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "restaurant") %>%
+      osmdata_sf()
+  }else if(value == "PARKING"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "parking") %>%
+      osmdata_sf()
+  }else if(value == "PLACE_OF_WORSHIP"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "place_of_worship") %>%
+      osmdata_sf()
+  }else if(value == "MARKETPLACE"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "marketplace") %>%
+      osmdata_sf()
+  }else if(value == "FAST_FOOD"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "fast_food") %>%
+      osmdata_sf()
+  }else if(value == "CAR_WASH"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "car_wash") %>%
+      osmdata_sf()
+  }else if(value == "POLICE"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "police") %>%
+      osmdata_sf()
+  }else if(value == "PUB"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "pub") %>%
+      osmdata_sf()
+  }else if(value == "NIGHTCLUB"){
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "nightclub") %>%
+      osmdata_sf()
+  }else{
+    AmenityBuffer <- buffer %>%
+      opq() %>%
+      add_osm_feature(key = "amenity", value = "community_centre") %>%
+      osmdata_sf()
+  }
+  
+  AmenityBufferPoly = AmenityBuffer$osm_polygons
+  AmenityCentroid <- st_centroid(AmenityBufferPoly)
+  centroidJs <- convertShapeFile(AmenityCentroid)
+    return(centroidJs)
+}
+
