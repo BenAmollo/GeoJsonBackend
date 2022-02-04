@@ -26,13 +26,13 @@ library(osrm)
 #* 
 #* 
 
-Parcels <- st_read("E:/Spatial Data/R Stuff/R API/rdata/Data/Shp/Sample_Shapefile_prj2.shp")
+Parcels <- st_read("C:/Users/SOK/Desktop/Data_4_R_API/Sample_Shapefile_prj2.shp")
 Schools <- st_read("E:/Spatial Data/Vector data/Kenya_Data/prj_Data/School2_prj.shp")
 Health_Facilities <- st_read("E:/Spatial Data/Vector data/Kenya_Data/prj_Data/Health_Facilitie2_prj.shp")
 East_Kwa_Mabeast <- st_read("E:/Spatial Data/Vector data/Kenya_Data/East_Kwa_Mabeast.shp")
 Wards <- st_read("E:/Spatial Data/Vector data/Kenya_Data/prj_Data/Ward2_prj.shp")
 
-
+Parcels
 
 #Transform function something
 Transform = function(Layer2Transform, crs){
@@ -418,3 +418,22 @@ AmenityBuffer = function(value, bufferDistance, latitude, longitude){
     return(centroidJs)
 }
 
+
+# Edit the attributes of the parcel data
+RowNumber = function(PARCEL_NO){
+  RNo <- which(grepl(PARCEL_NO, Parcels$PARCEL_NO))
+}
+#* get the edits to the shapefile
+#* @param PARCEL_NO The Parcel number to be edited
+#* @param Owner The name to be input
+#* @param Status The new Status of the parcel
+#* @get /get-edited-shapefile/
+
+AttributeEdit = function(PARCEL_NO, Owner, Status, Descriptio){
+  rNo. = RowNumber(PARCEL_NO)
+  Parcels[rNo.,3]<- Owner
+  Parcels[rNo.,4]<- Status
+  Parcels[rNo.,5]<- Descriptio
+  UpdatedParcels = convertShapeFile(Parcels)
+  return(UpdatedParcels)
+}
