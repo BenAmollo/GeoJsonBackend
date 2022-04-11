@@ -20,19 +20,32 @@ library(rjson)
 library(jsonlite)
 library(jsonify)
 library(osrm)
+library(osmdata)
 
 
 #* @apiTitle Spatial Data Query and Display API
 #* 
 #* 
 
-Parcels <- st_read("C:/Users/SOK/Desktop/Data_4_R_API/Sample_Shapefile_prj2.shp")
-Schools <- st_read("E:/Spatial Data/Vector data/Kenya_Data/prj_Data/School2_prj.shp")
-Health_Facilities <- st_read("E:/Spatial Data/Vector data/Kenya_Data/prj_Data/Health_Facilitie2_prj.shp")
-East_Kwa_Mabeast <- st_read("E:/Spatial Data/Vector data/Kenya_Data/East_Kwa_Mabeast.shp")
-Wards <- st_read("E:/Spatial Data/Vector data/Kenya_Data/prj_Data/Ward2_prj.shp")
+zip.url <- "http://158.69.36.45:8089/download-file/Data_4_R_API%20.zip"
 
-Parcels
+dir <- getwd()
+temp <- tempfile()
+
+zip.file <- "Data_4_R_API.zip"
+
+zip.combine <- as.character(paste(dir, zip.file, sep = "/"))
+
+#download.file(zip.url, destfile = zip.combine)
+
+unzip(zip.file)
+
+
+Wards = st_read("Ward2_prj.shp")
+Schools = st_read("School2_prj.shp")
+Health_Facilities = st_read("Health_Facilitie2_prj.shp")
+Parcels = st_read("Sample_Shapefile_prj2.shp")
+
 
 #Transform function something
 Transform = function(Layer2Transform, crs){
@@ -43,7 +56,6 @@ Transform = function(Layer2Transform, crs){
 ParcelsTransformed <- Transform(Parcels, crs)
 SchoolsTransformed <- Transform(Schools, crs)
 Health_FacilitiesTransformed <- Transform(Health_Facilities, crs)
-East_Kwa_MabeastTransformed <- Transform(East_Kwa_Mabeast, crs)
 WardsTransformed <- Transform(Wards, crs)
 
 
@@ -223,7 +235,7 @@ WardData = function(shapeFile, wardName){
 WardHealthFac = function(wardName){
   ward = wardSubset(Wards, wardName)
   WarDTransformed = Transform(ward, crs)
-  Ward_Facilty = st_intersection(HealthTransformed, st_union(WarDTransformed))
+  Ward_Facilty = st_intersection(Health_FacilitiesTransformed, st_union(WarDTransformed))
   Ward_Facilty_Subset = convertShapeFile(Ward_Facilty)
   return(Ward_Facilty_Subset)
 }
@@ -295,7 +307,7 @@ ShortestDistance = function(Latitude1,Longitude1, Latitude2,Longitude2){
   df = data.frame(com = c("StartPoint", "EndPoint"),                
                   lon = c(Longitude1, Longitude2),
                   lat = c(Latitude1, Latitude2),
-                  time = as.POSIXct(c("2022-01-18 23:59:59","2022-01-18 00:00:01"))) 
+                  time = as.POSIXct(c("2022-01-31 00:00:01","2022-01-31 23:59:59"))) 
   src = "StartPoint"
   dst = "EndPoint"
   
@@ -309,11 +321,13 @@ ShortestDistance = function(Latitude1,Longitude1, Latitude2,Longitude2){
     osrm.server = getOption("osrm.server"),
     osrm.profile = getOption("osrm.profile")
   )
+  #Routejs = convertShapeFile(Route)
   RouteGeoJson <- geojson_json(Route)
   RouteNewGeoJson <- fromJSON(RouteGeoJson)
   return(RouteNewGeoJson)
   
 }
+
 
 
 
@@ -417,6 +431,7 @@ AmenityBuffer = function(value, bufferDistance, latitude, longitude){
   centroidJs <- convertShapeFile(AmenityCentroid)
     return(centroidJs)
 }
+
 
 
 # Edit the attributes of the parcel data
